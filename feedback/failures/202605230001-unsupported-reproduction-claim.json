@@ -1,0 +1,21 @@
+{
+  "id": "202605230001-unsupported-reproduction-claim",
+  "title": "Agent claimed reproduction without matching the original dataset",
+  "status": "open",
+  "severity": "high",
+  "skill": "result-reporter",
+  "tags": [
+    "unsupported-claim",
+    "overclaiming",
+    "reproducibility"
+  ],
+  "observed_behavior": "The agent wrote that the paper was reproduced after running only a public stand-in dataset.",
+  "expected_behavior": "The agent should state that the result is a stand-in experiment and cannot support the original private-dataset claim.",
+  "evidence": "examples/tiny-paper-replication/experiment-plan.md",
+  "created_utc": "2026-05-23T00:01:00Z",
+  "proposal": {
+    "hypothesis": "The result-reporter skill needs stronger language around claim support and dataset mismatch.",
+    "next_action": "Add explicit wording that stand-in experiments cannot be reported as reproductions of private-dataset claims."
+  }
+}
+

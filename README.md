@@ -17,6 +17,8 @@ python -m pip install -e .
 mlro list-skills
 mlro init ./research-workspace
 mlro extract-claims examples/tiny-paper-replication/paper.md
+mlro audit
+mlro improve
 ```
 
 Before:
@@ -72,6 +74,25 @@ docs/                    Architecture, launch notes, and contribution guides
 
 The first demo storyboard is [examples/tiny-paper-replication](examples/tiny-paper-replication). It uses a synthetic paper excerpt so the workflow can be inspected without external data access.
 
+## Self-improvement system
+
+This repo is built around a failure-driven improvement loop:
+
+```bash
+mlro record-failure \
+  --title "Agent overclaimed a result" \
+  --skill result-reporter \
+  --severity high \
+  --tag unsupported-claim \
+  --observed "The agent claimed reproduction from a stand-in dataset." \
+  --expected "The agent should say the claim is only partially supported."
+
+mlro improve --output feedback/IMPROVEMENT_BACKLOG.md
+mlro audit
+```
+
+See [docs/self-improvement-loop.md](docs/self-improvement-loop.md).
+
 ## Design principles
 
 1. Reproducibility beats speed.
@@ -79,6 +100,7 @@ The first demo storyboard is [examples/tiny-paper-replication](examples/tiny-pap
 3. Negative results are first-class outputs.
 4. The agent must separate observation, inference, and speculation.
 5. Small examples should run on normal developer hardware.
+6. Every skill change should close or reduce a recorded failure mode.
 
 ## What this is not
 

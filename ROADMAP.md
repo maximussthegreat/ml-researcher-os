@@ -6,7 +6,8 @@
 - [x] Contribution guide
 - [x] Issue templates
 - [x] Demo storyboard
-- [ ] First installable skill package
+- [x] First installable skill package
+- [x] Failure-driven self-improvement loop
 - [ ] First reproducible example
 
 ## Phase 2: minimum useful release
@@ -35,3 +36,10 @@
 - [ ] Report where the skill helps
 - [ ] Report where the skill fails
 
+## Phase 5: self-improvement
+
+- [x] Record failure cases as JSON
+- [x] Generate improvement backlog from failures
+- [x] Audit skill-pack completeness
+- [ ] Link every skill PR to a failure or benchmark
+- [ ] Auto-open GitHub issues from high-priority failures

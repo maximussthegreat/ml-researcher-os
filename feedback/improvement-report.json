@@ -1,0 +1,30 @@
+{
+  "generated_utc": "2026-05-23T10:08:22Z",
+  "total_failures": 2,
+  "open_failures": 2,
+  "items": [
+    {
+      "skill": "result-reporter",
+      "priority": 33,
+      "open_failures": 1,
+      "top_failure": "Agent claimed reproduction without matching the original dataset",
+      "suggested_action": "Tighten result-reporter rules around evidence tags, unsupported claims, and final-answer restraint.",
+      "top_tags": [
+        "unsupported-claim",
+        "overclaiming",
+        "reproducibility"
+      ]
+    },
+    {
+      "skill": "experiment-planner",
+      "priority": 22,
+      "open_failures": 1,
+      "top_failure": "Experiment plan accepted a claim without a strong baseline policy",
+      "suggested_action": "Add baseline-selection requirements and examples to experiment-planner.",
+      "top_tags": [
+        "missing-baseline",
+        "weak-baseline"
+      ]
+    }
+  ]
+}

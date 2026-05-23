@@ -7,6 +7,10 @@ description: Use when summarizing experiment logs, benchmark outputs, ablations,
 
 Use this skill after experiments produce logs, metrics, or artifacts.
 
+## Goal
+
+Turn experiment outputs into an honest report that separates measured evidence from interpretation.
+
 ## Required sections
 
 1. Summary
@@ -49,4 +53,3 @@ End with a clear answer:
 Claim supported: yes/no/partial
 Reason: ...
 ```
-

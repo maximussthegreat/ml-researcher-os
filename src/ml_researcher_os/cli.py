@@ -5,6 +5,26 @@ import json
 import shutil
 from pathlib import Path
 
+try:
+    from ml_researcher_os.self_improve import (
+        audit_pack,
+        improvement_backlog,
+        record_failure,
+        render_backlog,
+        write_json,
+    )
+except ModuleNotFoundError:  # Allows direct execution via python src/ml_researcher_os/cli.py
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from ml_researcher_os.self_improve import (
+        audit_pack,
+        improvement_backlog,
+        record_failure,
+        render_backlog,
+        write_json,
+    )
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SKILLS_DIR = REPO_ROOT / "skills"
@@ -141,6 +161,51 @@ def cmd_extract_claims(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_audit(args: argparse.Namespace) -> int:
+    result = audit_pack(REPO_ROOT)
+    payload = {"ok": result.ok, "score": result.score, "checks": result.checks}
+    if args.json:
+        print(json.dumps(payload, indent=2))
+    else:
+        print(f"Self-audit score: {result.score}/100")
+        for check in result.checks:
+            marker = "PASS" if check["ok"] else "FAIL"
+            print(f"{marker} {check['name']} - {check['detail']}")
+    return 0 if result.ok else 1
+
+
+def cmd_record_failure(args: argparse.Namespace) -> int:
+    path = record_failure(
+        repo_root=REPO_ROOT,
+        title=args.title,
+        observed=args.observed,
+        expected=args.expected,
+        skill=args.skill,
+        severity=args.severity,
+        tags=args.tag or [],
+        evidence=args.evidence,
+    )
+    print(f"Recorded failure: {path}")
+    return 0
+
+
+def cmd_improve(args: argparse.Namespace) -> int:
+    failures_dir = Path(args.failures_dir).resolve() if args.failures_dir else None
+    report = improvement_backlog(REPO_ROOT, failures_dir)
+
+    if args.json_output:
+        write_json(Path(args.json_output), report)
+        print(f"Wrote {args.json_output}")
+
+    backlog = render_backlog(report)
+    if args.output:
+        Path(args.output).write_text(backlog, encoding="utf-8")
+        print(f"Wrote {args.output}")
+    else:
+        print(backlog)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="mlro")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -158,6 +223,26 @@ def build_parser() -> argparse.ArgumentParser:
     extract_parser.add_argument("--output", "-o", help="Write output to a file")
     extract_parser.set_defaults(func=cmd_extract_claims)
 
+    audit_parser = subparsers.add_parser("audit", help="Audit the skill pack for self-improvement readiness")
+    audit_parser.add_argument("--json", action="store_true", help="Print machine-readable audit JSON")
+    audit_parser.set_defaults(func=cmd_audit)
+
+    failure_parser = subparsers.add_parser("record-failure", help="Record a failure case for future skill improvement")
+    failure_parser.add_argument("--title", required=True)
+    failure_parser.add_argument("--observed", required=True)
+    failure_parser.add_argument("--expected", required=True)
+    failure_parser.add_argument("--skill", required=True)
+    failure_parser.add_argument("--severity", choices=["blocker", "high", "medium", "low"], default="medium")
+    failure_parser.add_argument("--tag", action="append", help="Repeatable failure tag")
+    failure_parser.add_argument("--evidence", default="not provided")
+    failure_parser.set_defaults(func=cmd_record_failure)
+
+    improve_parser = subparsers.add_parser("improve", help="Generate an improvement backlog from recorded failures")
+    improve_parser.add_argument("--failures-dir", help="Directory containing failure JSON files")
+    improve_parser.add_argument("--output", "-o", help="Write backlog markdown")
+    improve_parser.add_argument("--json-output", help="Write machine-readable report JSON")
+    improve_parser.set_defaults(func=cmd_improve)
+
     return parser
 
 
@@ -169,4 +254,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

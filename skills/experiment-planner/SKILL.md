@@ -7,6 +7,10 @@ description: Use when turning an ML hypothesis, paper claim, or model idea into 
 
 Use this skill after claim extraction and before writing training code.
 
+## Goal
+
+Convert a research claim into the smallest controlled experiment that can produce useful evidence.
+
 ## Required inputs
 
 - Hypothesis or paper claim
@@ -53,7 +57,13 @@ Every plan needs at least one baseline. Prefer:
 - cherry-picked run
 - missing negative result
 
+## Rules
+
+- Do not plan an experiment without at least one meaningful baseline.
+- Do not compare a heavily tuned model against an untuned baseline.
+- Do not claim reproduction when the dataset, split, or metric differs from the source claim.
+- Prefer three small controlled runs over one expensive ambiguous run.
+
 ## Output style
 
 Be concrete. Prefer a small experiment that can run today over an impressive plan that cannot be verified.
-

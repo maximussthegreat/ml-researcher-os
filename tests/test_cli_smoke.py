@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import unittest
 from pathlib import Path
 
 
@@ -18,14 +19,27 @@ def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_list_skills_smoke() -> None:
-    result = run_cli("list-skills")
-    assert "paper-claim-extractor" in result.stdout
-    assert "experiment-planner" in result.stdout
+class CliSmokeTests(unittest.TestCase):
+    def test_list_skills_smoke(self) -> None:
+        result = run_cli("list-skills")
+        self.assertIn("paper-claim-extractor", result.stdout)
+        self.assertIn("experiment-planner", result.stdout)
+
+    def test_extract_claims_smoke(self) -> None:
+        result = run_cli("extract-claims", "examples/tiny-paper-replication/paper.md")
+        self.assertIn("Core claim", result.stdout)
+        self.assertIn("TinyDense", result.stdout)
+
+    def test_audit_smoke(self) -> None:
+        result = run_cli("audit")
+        self.assertIn("Self-audit score", result.stdout)
+        self.assertIn("PASS skills manifest exists", result.stdout)
+
+    def test_improve_smoke(self) -> None:
+        result = run_cli("improve")
+        self.assertIn("Improvement Backlog", result.stdout)
+        self.assertIn("result-reporter", result.stdout)
 
 
-def test_extract_claims_smoke() -> None:
-    result = run_cli("extract-claims", "examples/tiny-paper-replication/paper.md")
-    assert "Core claim" in result.stdout
-    assert "TinyDense" in result.stdout
-
+if __name__ == "__main__":
+    unittest.main()

@@ -7,6 +7,10 @@ description: Use when preparing Hugging Face model cards, dataset cards, Space d
 
 Use this skill when a project is ready to publish an ML artifact.
 
+## Goal
+
+Prepare a release that is useful, reproducible, licensed clearly, and explicit about limitations.
+
 ## Release types
 
 Support:
@@ -48,4 +52,3 @@ Ready to publish: yes/no
 Blocking issues:
 - ...
 ```
-

@@ -1,0 +1,20 @@
+{
+  "id": "202605230002-missing-baseline-policy",
+  "title": "Experiment plan accepted a claim without a strong baseline policy",
+  "status": "open",
+  "severity": "medium",
+  "skill": "experiment-planner",
+  "tags": [
+    "missing-baseline",
+    "weak-baseline"
+  ],
+  "observed_behavior": "The plan listed a baseline but did not require tuning fairness or feature parity.",
+  "expected_behavior": "The plan should require a baseline that is tuned with comparable effort and uses a documented feature representation.",
+  "evidence": "examples/tiny-paper-replication/experiment-plan.md",
+  "created_utc": "2026-05-23T00:02:00Z",
+  "proposal": {
+    "hypothesis": "The experiment-planner skill should add a baseline fairness checklist.",
+    "next_action": "Patch the skill with a baseline fairness section and add one example."
+  }
+}
+

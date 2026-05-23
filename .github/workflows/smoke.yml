@@ -15,4 +15,6 @@ jobs:
           python-version: "3.12"
       - run: python src/ml_researcher_os/cli.py list-skills
       - run: python src/ml_researcher_os/cli.py extract-claims examples/tiny-paper-replication/paper.md
-
+      - run: python src/ml_researcher_os/cli.py audit
+      - run: python src/ml_researcher_os/cli.py improve --output feedback/IMPROVEMENT_BACKLOG.md --json-output feedback/improvement-report.json
+      - run: python -m unittest discover -s tests

@@ -7,6 +7,10 @@ description: Use when reviewing ML training code, suspicious metrics, unstable l
 
 Use this skill to review training and evaluation code before trusting results.
 
+## Goal
+
+Find the smallest code or protocol issue that could invalidate reported model metrics.
+
 ## Review order
 
 1. Data loading
@@ -50,4 +54,3 @@ Severity must be one of:
 - Do not claim the model is fixed until a rerun is available.
 - Do not rewrite the whole project when a small patch explains the issue.
 - If logs are missing, ask for logs or mark the conclusion as provisional.
-
