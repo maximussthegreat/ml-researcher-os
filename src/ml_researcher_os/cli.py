@@ -8,6 +8,15 @@ from pathlib import Path
 
 try:
     from ml_researcher_os.repo_doctor import doctor_repo, render_doctor_markdown
+    from ml_researcher_os.research_loop import (
+        init_loop,
+        load_loop,
+        program_path,
+        record_run,
+        render_program,
+        render_report,
+        report_path,
+    )
     from ml_researcher_os.self_improve import (
         audit_pack,
         improvement_backlog,
@@ -21,6 +30,15 @@ try:
 except ModuleNotFoundError:  # Allows direct execution via python src/ml_researcher_os/cli.py
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from ml_researcher_os.repo_doctor import doctor_repo, render_doctor_markdown
+    from ml_researcher_os.research_loop import (
+        init_loop,
+        load_loop,
+        program_path,
+        record_run,
+        render_program,
+        render_report,
+        report_path,
+    )
     from ml_researcher_os.self_improve import (
         audit_pack,
         improvement_backlog,
@@ -239,6 +257,64 @@ def cmd_make_regression(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_loop_init(args: argparse.Namespace) -> int:
+    try:
+        init_loop(
+            workspace=Path(args.path),
+            metric=args.metric,
+            direction=args.direction,
+            budget_minutes=args.budget_minutes,
+            goal=args.goal,
+            command=args.command,
+            force=args.force,
+        )
+    except FileExistsError as exc:
+        print(f"Loop ledger already exists: {exc}", file=sys.stderr)
+        print("Use --force to overwrite the loop skeleton.", file=sys.stderr)
+        return 2
+    print(f"Initialized research loop: {Path(args.path).resolve() / '.mlro' / 'research-loop.json'}")
+    print(f"Wrote program: {program_path(Path(args.path))}")
+    print(f"Wrote report: {report_path(Path(args.path))}")
+    return 0
+
+
+def cmd_loop_record(args: argparse.Namespace) -> int:
+    run = record_run(
+        workspace=Path(args.path),
+        name=args.run,
+        metric_value=args.value,
+        status=args.status,
+        command=args.command,
+        notes=args.notes,
+        artifacts=args.artifact or [],
+        changed_files=args.changed_file or [],
+    )
+    print(f"Recorded run: {run['id']}")
+    print(f"Decision: {run['decision']} - {run['decision_reason']}")
+    return 0
+
+
+def cmd_loop_report(args: argparse.Namespace) -> int:
+    state = load_loop(Path(args.path))
+    report = render_report(state)
+    if args.output:
+        Path(args.output).write_text(report, encoding="utf-8")
+        print(f"Wrote {args.output}")
+    else:
+        print(report)
+    return 0
+
+
+def cmd_loop_program(args: argparse.Namespace) -> int:
+    state = load_loop(Path(args.path))
+    program = render_program(state)
+    target = Path(args.output) if args.output else program_path(Path(args.path))
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(program, encoding="utf-8")
+    print(f"Wrote {target}")
+    return 0
+
+
 def cmd_improve(args: argparse.Namespace) -> int:
     failures_dir = Path(args.failures_dir).resolve() if args.failures_dir else None
     report = improvement_backlog(REPO_ROOT, failures_dir)
@@ -305,6 +381,40 @@ def build_parser() -> argparse.ArgumentParser:
     regression_parser.add_argument("--output-dir", default="benchmarks/regressions", help="Regression task root directory")
     regression_parser.add_argument("--force", action="store_true", help="Overwrite an existing task skeleton")
     regression_parser.set_defaults(func=cmd_make_regression)
+
+    loop_parser = subparsers.add_parser("loop", help="Run a fixed-budget metric loop for agentic ML experiments")
+    loop_subparsers = loop_parser.add_subparsers(dest="loop_command", required=True)
+
+    loop_init_parser = loop_subparsers.add_parser("init", help="Initialize a research loop ledger")
+    loop_init_parser.add_argument("path", nargs="?", default=".", help="Workspace to initialize")
+    loop_init_parser.add_argument("--metric", required=True, help="Metric to optimize, for example val_loss")
+    loop_init_parser.add_argument("--direction", choices=["lower", "higher"], default="lower")
+    loop_init_parser.add_argument("--budget-minutes", type=float, default=5.0)
+    loop_init_parser.add_argument("--goal", default="Improve the target metric with reproducible experiments.")
+    loop_init_parser.add_argument("--command", default="not specified", help="Default command for each run")
+    loop_init_parser.add_argument("--force", action="store_true", help="Overwrite an existing loop skeleton")
+    loop_init_parser.set_defaults(func=cmd_loop_init)
+
+    loop_record_parser = loop_subparsers.add_parser("record", help="Record a loop run and keep/reject by metric")
+    loop_record_parser.add_argument("path", nargs="?", default=".", help="Workspace containing .mlro/research-loop.json")
+    loop_record_parser.add_argument("--run", required=True, help="Human-readable run name")
+    loop_record_parser.add_argument("--value", type=float, required=True, help="Observed metric value")
+    loop_record_parser.add_argument("--status", choices=["completed", "failed", "skipped"], default="completed")
+    loop_record_parser.add_argument("--command", help="Command used for this run")
+    loop_record_parser.add_argument("--notes", default="")
+    loop_record_parser.add_argument("--artifact", action="append", help="Repeatable artifact path or URL")
+    loop_record_parser.add_argument("--changed-file", action="append", help="Repeatable changed file path")
+    loop_record_parser.set_defaults(func=cmd_loop_record)
+
+    loop_report_parser = loop_subparsers.add_parser("report", help="Render the research loop report")
+    loop_report_parser.add_argument("path", nargs="?", default=".", help="Workspace containing .mlro/research-loop.json")
+    loop_report_parser.add_argument("--output", "-o", help="Write report markdown")
+    loop_report_parser.set_defaults(func=cmd_loop_report)
+
+    loop_program_parser = loop_subparsers.add_parser("program", help="Render the agent program for this loop")
+    loop_program_parser.add_argument("path", nargs="?", default=".", help="Workspace containing .mlro/research-loop.json")
+    loop_program_parser.add_argument("--output", "-o", help="Write program markdown")
+    loop_program_parser.set_defaults(func=cmd_loop_program)
 
     improve_parser = subparsers.add_parser("improve", help="Generate an improvement backlog from recorded failures")
     improve_parser.add_argument("--failures-dir", help="Directory containing failure JSON files")

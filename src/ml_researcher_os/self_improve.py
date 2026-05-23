@@ -99,6 +99,8 @@ def audit_pack(repo_root: Path) -> AuditResult:
 
     add_check(checks, "failure issue template exists", (repo_root / ".github" / "ISSUE_TEMPLATE" / "failure_case.md").exists(), "failure_case.md")
     add_check(checks, "self improvement docs exist", (repo_root / "docs" / "self-improvement-loop.md").exists(), "docs/self-improvement-loop.md")
+    add_check(checks, "repo doctor docs exist", (repo_root / "docs" / "repo-doctor.md").exists(), "docs/repo-doctor.md")
+    add_check(checks, "research loop docs exist", (repo_root / "docs" / "research-loop-ledger.md").exists(), "docs/research-loop-ledger.md")
 
     passed = sum(1 for check in checks if check["ok"])
     score = round((passed / len(checks)) * 100) if checks else 0

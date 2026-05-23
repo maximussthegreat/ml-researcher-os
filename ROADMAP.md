@@ -9,6 +9,8 @@
 - [x] First installable skill package
 - [x] Failure-driven self-improvement loop
 - [x] Repo reproducibility doctor
+- [x] Research loop ledger
+- [x] Landscape scan and feature thesis
 - [ ] First reproducible example
 
 ## Phase 2: minimum useful release
@@ -44,5 +46,13 @@
 - [x] Audit skill-pack completeness
 - [x] Generate GitHub issue drafts from failures
 - [x] Turn failures into regression task skeletons
+- [x] Fixed-budget experiment ledger with keep/reject decisions
 - [ ] Link every skill PR to a failure or benchmark
 - [ ] Auto-open GitHub issues from high-priority failures
+
+## Phase 6: benchmark adapters
+
+- [ ] Export loop runs as benchmark trajectories
+- [ ] Generate PaperBench-style hierarchical rubrics from claims
+- [ ] Export failure cases into MLGym-compatible task folders
+- [ ] Add claim firewall that blocks reports when doctor checks are red

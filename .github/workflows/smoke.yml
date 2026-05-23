@@ -19,5 +19,9 @@ jobs:
       - run: python src/ml_researcher_os/cli.py doctor .
       - run: python src/ml_researcher_os/cli.py issue-from-failure --failure feedback/failures/202605230001-unsupported-reproduction-claim.json
       - run: python src/ml_researcher_os/cli.py make-regression --failure feedback/failures/202605230001-unsupported-reproduction-claim.json --output-dir /tmp/mlro-regressions
+      - run: python src/ml_researcher_os/cli.py loop init /tmp/mlro-loop --metric val_loss --direction lower --budget-minutes 5 --goal "Lower validation loss without changing the data split." --command "python train.py"
+      - run: python src/ml_researcher_os/cli.py loop record /tmp/mlro-loop --run baseline --value 1.0
+      - run: python src/ml_researcher_os/cli.py loop record /tmp/mlro-loop --run candidate --value 0.91
+      - run: python src/ml_researcher_os/cli.py loop report /tmp/mlro-loop
       - run: python src/ml_researcher_os/cli.py improve --output feedback/IMPROVEMENT_BACKLOG.md --json-output feedback/improvement-report.json
       - run: python -m unittest discover -s tests

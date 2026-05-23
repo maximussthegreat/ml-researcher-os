@@ -61,6 +61,31 @@ class CliSmokeTests(unittest.TestCase):
             self.assertEqual(len(task_files), 1)
             self.assertTrue(task_files[0].with_name("README.md").exists())
 
+    def test_research_loop_smoke(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_cli(
+                "loop",
+                "init",
+                tmp,
+                "--metric",
+                "val_loss",
+                "--direction",
+                "lower",
+                "--budget-minutes",
+                "5",
+                "--goal",
+                "Lower validation loss without changing the data split.",
+                "--command",
+                "python train.py",
+            )
+            first = run_cli("loop", "record", tmp, "--run", "baseline", "--value", "1.0")
+            second = run_cli("loop", "record", tmp, "--run", "candidate", "--value", "0.91")
+            report = run_cli("loop", "report", tmp)
+            self.assertIn("Decision: accept", first.stdout)
+            self.assertIn("Decision: accept", second.stdout)
+            self.assertIn("Research Loop Report", report.stdout)
+            self.assertIn("candidate", (Path(tmp) / ".mlro" / "research-loop.json").read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

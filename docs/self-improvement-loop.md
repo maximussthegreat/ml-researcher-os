@@ -63,6 +63,20 @@ mlro make-regression \
   --output-dir benchmarks/regressions
 ```
 
+Run a fixed-budget experiment loop:
+
+```bash
+mlro loop init . \
+  --metric val_loss \
+  --direction lower \
+  --budget-minutes 5 \
+  --command "python train.py"
+
+mlro loop record . --run baseline --value 1.0
+mlro loop record . --run candidate --value 0.91 --changed-file train.py
+mlro loop report .
+```
+
 ## Failure taxonomy
 
 Use short tags so patterns become visible:

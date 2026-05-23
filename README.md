@@ -18,6 +18,7 @@ mlro list-skills
 mlro init ./research-workspace
 mlro extract-claims examples/tiny-paper-replication/paper.md
 mlro doctor .
+mlro loop init ./research-workspace --metric val_loss --direction lower --budget-minutes 5 --command "python train.py"
 mlro audit
 mlro improve
 ```
@@ -101,10 +102,30 @@ See [docs/self-improvement-loop.md](docs/self-improvement-loop.md) and [docs/rep
 ## Why people should star it
 
 - Run `mlro doctor` on any ML repo and get a reproducibility score in seconds.
+- Run `mlro loop` to manage fixed-budget agent experiments with keep/reject decisions.
 - Turn vague agent failures into structured JSON with `mlro record-failure`.
 - Convert failures into GitHub issue drafts with `mlro issue-from-failure`.
 - Convert failures into regression tasks with `mlro make-regression`.
 - Keep the project improving from real failures instead of prettier prompts.
+
+## Research loop ledger
+
+Inspired by the public momentum around autoresearch-style systems, `mlro loop` gives agents a tight experiment protocol:
+
+```bash
+mlro loop init . \
+  --metric val_loss \
+  --direction lower \
+  --budget-minutes 5 \
+  --goal "Lower validation loss without changing the data split." \
+  --command "python train.py"
+
+mlro loop record . --run baseline --value 1.0
+mlro loop record . --run candidate-dropout-0.2 --value 0.91 --changed-file train.py
+mlro loop report .
+```
+
+See [docs/research-loop-ledger.md](docs/research-loop-ledger.md) and [docs/landscape-scan-2026-05-23.md](docs/landscape-scan-2026-05-23.md).
 
 ## Design principles
 
