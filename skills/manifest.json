@@ -1,0 +1,38 @@
+{
+  "name": "ml-researcher-os",
+  "version": "0.1.0",
+  "description": "Agent skills and workflows for reproducible ML research.",
+  "skills": [
+    {
+      "name": "paper-claim-extractor",
+      "path": "paper-claim-extractor/SKILL.md",
+      "purpose": "Extract paper claims, assumptions, evidence, metrics, and limitations."
+    },
+    {
+      "name": "experiment-planner",
+      "path": "experiment-planner/SKILL.md",
+      "purpose": "Turn research claims into controlled experiment plans."
+    },
+    {
+      "name": "training-loop-debugger",
+      "path": "training-loop-debugger/SKILL.md",
+      "purpose": "Review training and evaluation loops for common ML errors."
+    },
+    {
+      "name": "result-reporter",
+      "path": "result-reporter/SKILL.md",
+      "purpose": "Write honest reports that separate observed results from inference."
+    },
+    {
+      "name": "reproducibility-auditor",
+      "path": "reproducibility-auditor/SKILL.md",
+      "purpose": "Audit ML projects for reproducibility gaps."
+    },
+    {
+      "name": "hf-release-prep",
+      "path": "hf-release-prep/SKILL.md",
+      "purpose": "Prepare Hugging Face model, dataset, or Space release artifacts."
+    }
+  ]
+}
+
