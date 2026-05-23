@@ -1,0 +1,25 @@
+{
+  "experiment": "tiny-paper-replication-smoke",
+  "claim_scope": "public stand-in task only",
+  "dataset": {
+    "name": "public-short-text-demo",
+    "split": {
+      "train": 0.8,
+      "validation": 0.1,
+      "test": 0.1,
+      "stratified": true,
+      "leakage_check": "fit preprocessing on train only"
+    }
+  },
+  "seeds": [13, 37, 101],
+  "baselines": [
+    "majority-class",
+    "tfidf-logistic-regression"
+  ],
+  "candidate": "compact-transformer",
+  "metrics": [
+    "macro_f1",
+    "accuracy"
+  ],
+  "reporting_rule": "Report mean and standard deviation across all seeds. Never call this a private-dataset reproduction."
+}

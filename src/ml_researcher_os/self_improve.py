@@ -94,7 +94,7 @@ def audit_pack(repo_root: Path) -> AuditResult:
         add_check(checks, f"template exists: {template}", (repo_root / "templates" / template).exists(), template)
 
     demo = repo_root / "examples" / "tiny-paper-replication"
-    for demo_file in ["README.md", "paper.md", "agent-output-with-skill.md", "experiment-plan.md"]:
+    for demo_file in ["README.md", "paper.md", "agent-output-with-skill.md", "experiment-plan.md", "configs/smoke.json"]:
         add_check(checks, f"demo file exists: {demo_file}", (demo / demo_file).exists(), demo_file)
 
     add_check(checks, "failure issue template exists", (repo_root / ".github" / "ISSUE_TEMPLATE" / "failure_case.md").exists(), "failure_case.md")
@@ -151,6 +151,12 @@ def load_failures(repo_root: Path, failures_dir: Path | None = None) -> list[dic
         item["_path"] = str(path)
         failures.append(item)
     return failures
+
+
+def load_failure_file(path: Path) -> dict[str, Any]:
+    failure = read_json(path)
+    failure["_path"] = str(path)
+    return failure
 
 
 def priority_for(failure: dict[str, Any]) -> int:
@@ -234,3 +240,109 @@ def render_backlog(report: dict[str, Any]) -> str:
     )
     return "\n".join(lines) + "\n"
 
+
+def render_failure_issue(failure: dict[str, Any]) -> str:
+    tags = ", ".join(failure.get("tags", [])) or "none"
+    title = failure.get("title", "Untitled failure")
+    skill = failure.get("skill", "unknown")
+    severity = failure.get("severity", "medium")
+    return "\n".join(
+        [
+            f"# Failure case: {title}",
+            "",
+            f"- Skill: `{skill}`",
+            f"- Severity: `{severity}`",
+            f"- Tags: {tags}",
+            f"- Source: `{failure.get('_path', 'manual')}`",
+            "",
+            "## Observed behavior",
+            "",
+            str(failure.get("observed_behavior", "not provided")),
+            "",
+            "## Expected behavior",
+            "",
+            str(failure.get("expected_behavior", "not provided")),
+            "",
+            "## Evidence",
+            "",
+            str(failure.get("evidence", "not provided")),
+            "",
+            "## Proposed fix",
+            "",
+            str(failure.get("proposal", {}).get("next_action", "Patch the narrowest relevant skill or template.")),
+            "",
+            "## Acceptance criteria",
+            "",
+            "- The failure can be reproduced from a small fixture or example.",
+            "- The relevant skill, template, or example is patched.",
+            "- A regression task or smoke check catches the failure mode.",
+            "- The final output separates evidence from inference.",
+            "",
+        ]
+    )
+
+
+def write_regression_task(failure: dict[str, Any], output_root: Path, force: bool = False) -> Path:
+    failure_id = str(failure.get("id") or slugify(str(failure.get("title", "failure"))))
+    target = output_root / failure_id
+    if target.exists() and not force:
+        raise FileExistsError(target)
+    target.mkdir(parents=True, exist_ok=True)
+
+    skill = str(failure.get("skill", "unknown"))
+    task = {
+        "id": failure_id,
+        "title": failure.get("title", "Untitled failure"),
+        "source_failure": failure.get("_path", "manual"),
+        "skill": skill,
+        "severity": failure.get("severity", "medium"),
+        "tags": failure.get("tags", []),
+        "prompt": (
+            "Use the relevant ML Researcher OS skill to handle this failure case. "
+            "Do not overclaim. Produce only conclusions supported by the supplied evidence."
+        ),
+        "acceptance_criteria": [
+            "Names the observed failure mode.",
+            "States the expected behavior in operational terms.",
+            "Suggests the narrowest skill, template, or example change.",
+            "Includes a regression check that would catch the failure next time.",
+        ],
+    }
+    write_json(target / "task.json", task)
+
+    readme = [
+        f"# Regression: {failure.get('title', 'Untitled failure')}",
+        "",
+        f"Skill under test: `{skill}`",
+        f"Severity: `{failure.get('severity', 'medium')}`",
+        "",
+        "## Observed behavior",
+        "",
+        str(failure.get("observed_behavior", "not provided")),
+        "",
+        "## Expected behavior",
+        "",
+        str(failure.get("expected_behavior", "not provided")),
+        "",
+        "## Evidence",
+        "",
+        str(failure.get("evidence", "not provided")),
+        "",
+        "## Regression goal",
+        "",
+        "A future agent run should identify this failure mode, avoid the bad behavior, and propose a concrete patch.",
+        "",
+    ]
+    (target / "README.md").write_text("\n".join(readme), encoding="utf-8")
+
+    expected = [
+        "# Expected Response Shape",
+        "",
+        "- Identifies the failure without exaggerating certainty.",
+        "- Explains why the observed behavior is unsafe or unreproducible.",
+        "- Proposes a narrow fix tied to the named skill or template.",
+        "- Adds or updates a smoke check, example, or benchmark task.",
+        "",
+    ]
+    (target / "expected.md").write_text("\n".join(expected), encoding="utf-8")
+    return target

@@ -17,6 +17,7 @@ python -m pip install -e .
 mlro list-skills
 mlro init ./research-workspace
 mlro extract-claims examples/tiny-paper-replication/paper.md
+mlro doctor .
 mlro audit
 mlro improve
 ```
@@ -79,6 +80,8 @@ The first demo storyboard is [examples/tiny-paper-replication](examples/tiny-pap
 This repo is built around a failure-driven improvement loop:
 
 ```bash
+mlro doctor ../my-ml-project --output doctor-report.md
+
 mlro record-failure \
   --title "Agent overclaimed a result" \
   --skill result-reporter \
@@ -88,10 +91,20 @@ mlro record-failure \
   --expected "The agent should say the claim is only partially supported."
 
 mlro improve --output feedback/IMPROVEMENT_BACKLOG.md
+mlro issue-from-failure --failure feedback/failures/example.json
+mlro make-regression --failure feedback/failures/example.json
 mlro audit
 ```
 
-See [docs/self-improvement-loop.md](docs/self-improvement-loop.md).
+See [docs/self-improvement-loop.md](docs/self-improvement-loop.md) and [docs/repo-doctor.md](docs/repo-doctor.md).
+
+## Why people should star it
+
+- Run `mlro doctor` on any ML repo and get a reproducibility score in seconds.
+- Turn vague agent failures into structured JSON with `mlro record-failure`.
+- Convert failures into GitHub issue drafts with `mlro issue-from-failure`.
+- Convert failures into regression tasks with `mlro make-regression`.
+- Keep the project improving from real failures instead of prettier prompts.
 
 ## Design principles
 

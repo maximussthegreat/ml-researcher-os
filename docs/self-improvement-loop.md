@@ -19,6 +19,12 @@ Audit the repository:
 mlro audit
 ```
 
+Score any ML project for reproducibility readiness:
+
+```bash
+mlro doctor ../some-ml-project --output doctor-report.md
+```
+
 Record a failure:
 
 ```bash
@@ -39,6 +45,22 @@ Generate the backlog:
 mlro improve \
   --output feedback/IMPROVEMENT_BACKLOG.md \
   --json-output feedback/improvement-report.json
+```
+
+Turn a failure into a GitHub issue draft:
+
+```bash
+mlro issue-from-failure \
+  --failure feedback/failures/202605230001-unsupported-reproduction-claim.json \
+  --output issue.md
+```
+
+Turn a failure into a regression task:
+
+```bash
+mlro make-regression \
+  --failure feedback/failures/202605230001-unsupported-reproduction-claim.json \
+  --output-dir benchmarks/regressions
 ```
 
 ## Failure taxonomy
@@ -66,4 +88,3 @@ Every meaningful skill change should be tied to one of:
 - a user report that can be turned into one of the above
 
 That keeps the project from becoming a prompt museum.
-

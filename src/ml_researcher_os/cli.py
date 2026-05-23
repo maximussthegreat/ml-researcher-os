@@ -3,25 +3,32 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import sys
 from pathlib import Path
 
 try:
+    from ml_researcher_os.repo_doctor import doctor_repo, render_doctor_markdown
     from ml_researcher_os.self_improve import (
         audit_pack,
         improvement_backlog,
+        load_failure_file,
         record_failure,
         render_backlog,
+        render_failure_issue,
+        write_regression_task,
         write_json,
     )
 except ModuleNotFoundError:  # Allows direct execution via python src/ml_researcher_os/cli.py
-    import sys
-
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from ml_researcher_os.repo_doctor import doctor_repo, render_doctor_markdown
     from ml_researcher_os.self_improve import (
         audit_pack,
         improvement_backlog,
+        load_failure_file,
         record_failure,
         render_backlog,
+        render_failure_issue,
+        write_regression_task,
         write_json,
     )
 
@@ -174,6 +181,26 @@ def cmd_audit(args: argparse.Namespace) -> int:
     return 0 if result.ok else 1
 
 
+def cmd_doctor(args: argparse.Namespace) -> int:
+    report = doctor_repo(Path(args.path))
+    markdown = render_doctor_markdown(report)
+
+    if args.json_output:
+        write_json(Path(args.json_output), report)
+        print(f"Wrote {args.json_output}")
+
+    if args.output:
+        Path(args.output).write_text(markdown, encoding="utf-8")
+        print(f"Wrote {args.output}")
+
+    if args.json:
+        print(json.dumps(report, indent=2))
+    elif not args.output:
+        print(markdown)
+
+    return 0 if report["score"] >= args.min_score else 1
+
+
 def cmd_record_failure(args: argparse.Namespace) -> int:
     path = record_failure(
         repo_root=REPO_ROOT,
@@ -186,6 +213,29 @@ def cmd_record_failure(args: argparse.Namespace) -> int:
         evidence=args.evidence,
     )
     print(f"Recorded failure: {path}")
+    return 0
+
+
+def cmd_issue_from_failure(args: argparse.Namespace) -> int:
+    failure = load_failure_file(Path(args.failure))
+    body = render_failure_issue(failure)
+    if args.output:
+        Path(args.output).write_text(body, encoding="utf-8")
+        print(f"Wrote {args.output}")
+    else:
+        print(body)
+    return 0
+
+
+def cmd_make_regression(args: argparse.Namespace) -> int:
+    failure = load_failure_file(Path(args.failure))
+    try:
+        target = write_regression_task(failure, Path(args.output_dir), force=args.force)
+    except FileExistsError as exc:
+        print(f"Regression task already exists: {exc}", file=sys.stderr)
+        print("Use --force to overwrite the task skeleton.", file=sys.stderr)
+        return 2
+    print(f"Wrote regression task: {target}")
     return 0
 
 
@@ -227,6 +277,14 @@ def build_parser() -> argparse.ArgumentParser:
     audit_parser.add_argument("--json", action="store_true", help="Print machine-readable audit JSON")
     audit_parser.set_defaults(func=cmd_audit)
 
+    doctor_parser = subparsers.add_parser("doctor", help="Score an ML repo for reproducibility readiness")
+    doctor_parser.add_argument("path", nargs="?", default=".", help="Repository or workspace to inspect")
+    doctor_parser.add_argument("--json", action="store_true", help="Print machine-readable doctor JSON")
+    doctor_parser.add_argument("--json-output", help="Write machine-readable report JSON")
+    doctor_parser.add_argument("--output", "-o", help="Write markdown report")
+    doctor_parser.add_argument("--min-score", type=int, default=0, help="Exit non-zero when score is below this value")
+    doctor_parser.set_defaults(func=cmd_doctor)
+
     failure_parser = subparsers.add_parser("record-failure", help="Record a failure case for future skill improvement")
     failure_parser.add_argument("--title", required=True)
     failure_parser.add_argument("--observed", required=True)
@@ -236,6 +294,17 @@ def build_parser() -> argparse.ArgumentParser:
     failure_parser.add_argument("--tag", action="append", help="Repeatable failure tag")
     failure_parser.add_argument("--evidence", default="not provided")
     failure_parser.set_defaults(func=cmd_record_failure)
+
+    issue_parser = subparsers.add_parser("issue-from-failure", help="Render a GitHub issue body from a failure JSON file")
+    issue_parser.add_argument("--failure", required=True, help="Failure JSON file")
+    issue_parser.add_argument("--output", "-o", help="Write issue markdown")
+    issue_parser.set_defaults(func=cmd_issue_from_failure)
+
+    regression_parser = subparsers.add_parser("make-regression", help="Turn a failure JSON file into a regression task")
+    regression_parser.add_argument("--failure", required=True, help="Failure JSON file")
+    regression_parser.add_argument("--output-dir", default="benchmarks/regressions", help="Regression task root directory")
+    regression_parser.add_argument("--force", action="store_true", help="Overwrite an existing task skeleton")
+    regression_parser.set_defaults(func=cmd_make_regression)
 
     improve_parser = subparsers.add_parser("improve", help="Generate an improvement backlog from recorded failures")
     improve_parser.add_argument("--failures-dir", help="Directory containing failure JSON files")

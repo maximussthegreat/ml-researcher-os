@@ -16,5 +16,8 @@ jobs:
       - run: python src/ml_researcher_os/cli.py list-skills
       - run: python src/ml_researcher_os/cli.py extract-claims examples/tiny-paper-replication/paper.md
       - run: python src/ml_researcher_os/cli.py audit
+      - run: python src/ml_researcher_os/cli.py doctor .
+      - run: python src/ml_researcher_os/cli.py issue-from-failure --failure feedback/failures/202605230001-unsupported-reproduction-claim.json
+      - run: python src/ml_researcher_os/cli.py make-regression --failure feedback/failures/202605230001-unsupported-reproduction-claim.json --output-dir /tmp/mlro-regressions
       - run: python src/ml_researcher_os/cli.py improve --output feedback/IMPROVEMENT_BACKLOG.md --json-output feedback/improvement-report.json
       - run: python -m unittest discover -s tests

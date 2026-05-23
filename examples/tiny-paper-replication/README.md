@@ -14,10 +14,10 @@ It shows the intended flow:
 - [paper.md](paper.md): a short fake paper excerpt.
 - [agent-output-with-skill.md](agent-output-with-skill.md): expected output after using the skills.
 - [experiment-plan.md](experiment-plan.md): a concrete plan generated from the claim.
+- [configs/smoke.json](configs/smoke.json): seed, split, baseline, and metric policy for the demo.
 
 ## Why the paper is fake
 
 The demo uses a synthetic excerpt so the repository can show the workflow without depending on an external paper, license, or dataset.
 
 The first real release should add one small public dataset example.
-

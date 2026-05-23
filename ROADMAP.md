@@ -8,6 +8,7 @@
 - [x] Demo storyboard
 - [x] First installable skill package
 - [x] Failure-driven self-improvement loop
+- [x] Repo reproducibility doctor
 - [ ] First reproducible example
 
 ## Phase 2: minimum useful release
@@ -41,5 +42,7 @@
 - [x] Record failure cases as JSON
 - [x] Generate improvement backlog from failures
 - [x] Audit skill-pack completeness
+- [x] Generate GitHub issue drafts from failures
+- [x] Turn failures into regression task skeletons
 - [ ] Link every skill PR to a failure or benchmark
 - [ ] Auto-open GitHub issues from high-priority failures
